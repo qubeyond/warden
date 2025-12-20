@@ -1,6 +1,6 @@
 include(GoogleTest)
 
-function(add_warden_test NAME SOURCES)
+function(create_test NAME SOURCES)
     add_executable(${NAME} ${SOURCES})
     
     target_link_libraries(${NAME} PRIVATE 
