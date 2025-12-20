@@ -19,7 +19,7 @@ install_manifest.txt
 compile_commands.json
 
 # Visual Studio
-.vs/
+.vscode/
 out/
 Generated\ Files/
 *.suo
