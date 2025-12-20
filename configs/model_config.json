@@ -1,5 +1,5 @@
 {
-    "model_file": "models/ransomware.json",
+    "model_file": "models/ransomware_model_v1.json",
     "threshold": 0.301,
     "model_type": "XGBClassifier",
     "n_features": 263
