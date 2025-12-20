@@ -1,28 +1,39 @@
-#include <iostream>
-#include <memory>
-#include <vector>
-
-#include "common/defs.hpp"
 #include "services/config_service.hpp"
+#include "services/cli_service.hpp"
+#include "services/detector_service.hpp"
+#include "common/defs.hpp"
 
-using namespace warden;
+#include <iostream> 
+#include <exception>
 
-int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv) {
-    try {
-        auto config = std::make_shared<services::ConfigService>(common::APP_CONFIG_PATH,
-                                                                common::MODEL_CONFIG_PATH);
+using namespace warden::services;
 
-        std::cout << "[Warden CLI] Core library linked successfully" << std::endl;
+int main(int argc, char** argv) {
+    CliService cli;
+    CliOptions options;
 
-        auto dirs = config->get_watch_dirs();
-        std::cout << "[Scanner] Monitoring " << dirs.size() << " directories:" << std::endl;
-        for (const auto &dir : dirs) {
-            std::cout << "  - " << dir << std::endl;
-        }
-
-    } catch (const std::exception &e) {
-        std::cerr << "Initialization error: " << e.what() << std::endl;
+    if (!cli.parse(argc, argv, options)) {
         return 1;
     }
+
+    try {
+        ConfigService config(warden::common::APP_CONFIG_PATH, warden::common::MODEL_CONFIG_PATH);
+        
+        ScanService scanner;
+        FeatureService extractor;
+        ModelService model(config.get_model_path());
+        DetectorService detector(scanner, extractor, model);
+
+        float threshold = (options.custom_threshold > 0) ? options.custom_threshold : config.get_threshold();
+        
+        auto result = detector.process_file(options.file_path, threshold);
+        
+        cli.print_report(options.file_path, result);
+
+    } catch (const std::exception& e) {
+        std::cerr << "[!] Fatal Error: " << e.what() << std::endl;
+        return 1;
+    }
+
     return 0;
 }
