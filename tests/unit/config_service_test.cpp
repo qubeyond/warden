@@ -1,8 +1,8 @@
+#include "services/config_service.hpp"
+
 #include <gtest/gtest.h>
 
 #include <fstream>
-
-#include "services/config_service.hpp"
 
 using namespace warden::services;
 

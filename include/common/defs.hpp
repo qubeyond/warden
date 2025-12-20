@@ -11,6 +11,8 @@ inline constexpr size_t HIST_SIZE = 256;
 inline constexpr size_t METRICS_SIZE = 7;
 inline constexpr size_t FEATURES_COUNT = HIST_SIZE + METRICS_SIZE;
 
+inline constexpr size_t CHUNK_SIZE = 4096;
+
 inline constexpr const char *APP_CONFIG_PATH = "configs/app_config.json";
 inline constexpr const char *MODEL_CONFIG_PATH = "configs/model_config.json";
 
