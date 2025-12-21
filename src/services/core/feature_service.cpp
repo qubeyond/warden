@@ -1,20 +1,23 @@
-#include "services/feature_service.hpp"
+#include "services/core/feature_service.hpp"
+
+#include <magic.h>
+
 #include <algorithm>
 #include <cmath>
 #include <numeric>
 #include <stdexcept>
-#include <magic.h>
 
 namespace warden::services {
 
-FeatureService::FeatureService(const ConfigService& config) : config_(config) {}
+FeatureService::FeatureService(const ConfigService& config) : config_(config) {
+}
 
 std::vector<float> FeatureService::extract_from_buffer(const std::vector<uint8_t>& data) {
     const size_t expected_features = config_.get_features();
-    
+
     if (expected_features != 262) {
-        throw std::runtime_error("FeatureService logic mismatch: code expects 262, config says " 
-                                 + std::to_string(expected_features));
+        throw std::runtime_error("FeatureService logic mismatch: code expects 262, config says " +
+                                 std::to_string(expected_features));
     }
 
     if (data.empty()) {
@@ -125,9 +128,11 @@ warden::common::FileType FeatureService::identify_file_type(const std::string& p
 
     if (s_mime.find("video/") == 0 || s_mime.find("image/") == 0 || s_mime == "application/pdf") {
         type = warden::common::FileType::MEDIA;
-    } else if (s_mime.find("archive") != std::string::npos || s_mime == "application/zip" || s_mime == "application/x-rar") {
+    } else if (s_mime.find("archive") != std::string::npos || s_mime == "application/zip" ||
+               s_mime == "application/x-rar") {
         type = warden::common::FileType::ARCHIVE;
-    } else if (s_mime.find("application/x-executable") != std::string::npos || s_mime.find("application/x-sharedlib") != std::string::npos) {
+    } else if (s_mime.find("application/x-executable") != std::string::npos ||
+               s_mime.find("application/x-sharedlib") != std::string::npos) {
         type = warden::common::FileType::EXECUTABLE;
     }
 
@@ -135,4 +140,4 @@ warden::common::FileType FeatureService::identify_file_type(const std::string& p
     return type;
 }
 
-}
+}  // namespace warden::services

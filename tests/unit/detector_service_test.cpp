@@ -1,6 +1,8 @@
-#include "services/detector_service.hpp"
-#include "services/config_service.hpp"
+#include "services/core/detector_service.hpp"
+
 #include <gtest/gtest.h>
+
+#include "services/system/config_service.hpp"
 
 using namespace warden::services;
 

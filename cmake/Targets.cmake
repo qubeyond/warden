@@ -1,5 +1,9 @@
-file(GLOB_RECURSE WARDEN_CORE_SOURCES "${PROJECT_SOURCE_DIR}/src/services/*.cpp")
-list(REMOVE_ITEM WARDEN_CORE_SOURCES "${PROJECT_SOURCE_DIR}/src/services/cli_service.cpp")
+file(GLOB_RECURSE WARDEN_CORE_SOURCES CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/services/*.cpp")
+file(GLOB_RECURSE CLI_SERVICE_PATH CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/services/*/cli_service.cpp")
+
+if(CLI_SERVICE_PATH)
+    list(REMOVE_ITEM WARDEN_CORE_SOURCES ${CLI_SERVICE_PATH})
+endif()
 
 add_library(warden_core SHARED ${WARDEN_CORE_SOURCES})
 set_target_properties(warden_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -15,7 +19,7 @@ target_link_libraries(warden_core PUBLIC
 
 add_executable(warden_cli 
     src/cli/main.cpp 
-    src/services/cli_service.cpp
+    ${CLI_SERVICE_PATH}
 )
 target_link_libraries(warden_cli PRIVATE 
     warden_core 

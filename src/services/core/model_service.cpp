@@ -1,17 +1,16 @@
-#include "services/model_service.hpp"
+#include "services/core/model_service.hpp"
+
 #include <stdexcept>
 
 namespace warden::services {
 
-ModelService::ModelService(const ConfigService& config) 
-    : config_(config), booster_(nullptr) {
-    
+ModelService::ModelService(const ConfigService& config) : config_(config), booster_(nullptr) {
     std::string model_path = config_.get_model_path();
-    
+
     if (XGBoosterCreate(nullptr, 0, &booster_) != 0) {
         throw std::runtime_error("Failed to create XGBoost booster");
     }
-    
+
     if (XGBoosterLoadModel(booster_, model_path.c_str()) != 0) {
         throw std::runtime_error("Failed to load model: " + model_path);
     }
@@ -28,8 +27,7 @@ float ModelService::predict(const std::vector<float>& features) {
 
     size_t expected = config_.get_features();
     if (features.size() != expected) {
-        throw std::runtime_error("Model input mismatch: expected " + 
-                                 std::to_string(expected) + 
+        throw std::runtime_error("Model input mismatch: expected " + std::to_string(expected) +
                                  ", got " + std::to_string(features.size()));
     }
 
@@ -51,4 +49,4 @@ float ModelService::predict(const std::vector<float>& features) {
     return (out_len > 0) ? out_result[0] : 0.0f;
 }
 
-}
+}  // namespace warden::services

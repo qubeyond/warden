@@ -3,9 +3,9 @@
 #include <vector>
 
 #include "common/defs.hpp"
-#include "services/feature_service.hpp"
-#include "services/model_service.hpp"
-#include "services/scan_service.hpp"
+#include "services/core/feature_service.hpp"
+#include "services/core/model_service.hpp"
+#include "services/core/scan_service.hpp"
 
 namespace warden::services {
 

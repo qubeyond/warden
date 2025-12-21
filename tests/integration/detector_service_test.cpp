@@ -1,16 +1,19 @@
-#include "services/detector_service.hpp"
-#include "services/config_service.hpp"
+#include "services/core/detector_service.hpp"
+
 #include <gtest/gtest.h>
-#include <vector>
-#include <memory>
-#include <fstream>
+
 #include <filesystem>
+#include <fstream>
+#include <memory>
+#include <vector>
+
+#include "services/system/config_service.hpp"
 
 using namespace warden::services;
 using namespace warden::common;
 
 class DetectorIntegrationTest : public ::testing::Test {
-protected:
+   protected:
     std::unique_ptr<ConfigService> cs;
     std::unique_ptr<ScanService> ss;
     std::unique_ptr<FeatureService> fs;
@@ -22,7 +25,8 @@ protected:
         std::string p = "configs/properties.json";
 
         if (!std::filesystem::exists(a)) {
-            throw std::runtime_error("Test resource missing at: " + std::filesystem::absolute(a).string());
+            throw std::runtime_error("Test resource missing at: " +
+                                     std::filesystem::absolute(a).string());
         }
 
         cs = std::make_unique<ConfigService>(a, m, p);
@@ -49,7 +53,7 @@ TEST_F(DetectorIntegrationTest, BoundarySmallFile) {
 
 TEST_F(DetectorIntegrationTest, BoundaryExactlyTenChunks) {
     std::string p = "test_multi.bin";
-    create_file(p, 1024 * 1024, 0x00); 
+    create_file(p, 1024 * 1024, 0x00);
     DetectorService ds(*ss, *fs, *ms);
     auto res = ds.process_file(p, 0.5f);
     EXPECT_GT(res.total_chunks, 0);

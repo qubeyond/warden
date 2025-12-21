@@ -1,18 +1,21 @@
-#include "services/config_service.hpp"
+#include "services/system/config_service.hpp"
+
 #include <gtest/gtest.h>
+
 #include <fstream>
 
 using namespace warden::services;
 
 class ConfigServiceTest : public ::testing::Test {
-protected:
+   protected:
     void SetUp() override {
         std::ofstream app("test_app.json");
         app << R"({"database": {"host": "127.0.0.1"}})";
         app.close();
 
         std::ofstream model("test_model.json");
-        model << R"({"model_file": "m.json", "threshold": 0.5, "n_features": 262, "model_type": "XGB"})";
+        model
+            << R"({"model_file": "m.json", "threshold": 0.5, "n_features": 262, "model_type": "XGB"})";
         model.close();
 
         std::ofstream prop("test_prop.json");

@@ -1,13 +1,16 @@
-#include "services/model_service.hpp"
-#include "services/config_service.hpp"
+#include "services/core/model_service.hpp"
+
 #include <gtest/gtest.h>
-#include <vector>
+
 #include <memory>
+#include <vector>
+
+#include "services/system/config_service.hpp"
 
 using namespace warden::services;
 
 class ModelServiceTest : public ::testing::Test {
-protected:
+   protected:
     std::unique_ptr<ConfigService> cs;
 
     void SetUp() override {
@@ -24,13 +27,13 @@ TEST_F(ModelServiceTest, InferenceLogic) {
 
     std::vector<float> zero_features(262, 0.0f);
     float score_low = ms.predict(zero_features);
-    
+
     EXPECT_GE(score_low, 0.0f);
     EXPECT_LE(score_low, 1.0f);
 
     std::vector<float> high_entropy_features(262, 0.0f);
     for (int i = 0; i < 256; ++i) high_entropy_features[i] = 1.0f / 256.0f;
-    high_entropy_features[256] = 8.0f; 
+    high_entropy_features[256] = 8.0f;
 
     float score_high = ms.predict(high_entropy_features);
 

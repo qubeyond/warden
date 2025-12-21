@@ -1,14 +1,17 @@
-#include "services/scan_service.hpp"
-#include "services/config_service.hpp"
-#include "common/defs.hpp"
+#include "services/core/scan_service.hpp"
+
 #include <algorithm>
-#include <set>
 #include <cmath>
 #include <fstream>
+#include <set>
+
+#include "common/defs.hpp"
+#include "services/system/config_service.hpp"
 
 namespace warden::services {
 
-ScanService::ScanService(const ConfigService& config) : config_(config) {}
+ScanService::ScanService(const ConfigService& config) : config_(config) {
+}
 
 std::vector<std::vector<uint8_t>> ScanService::get_file_chunks(const std::string& path) {
     std::ifstream file(path, std::ios::binary | std::ios::ate);
@@ -57,4 +60,4 @@ std::vector<uint8_t> ScanService::read_chunk(std::ifstream& file, size_t offset,
     return buffer;
 }
 
-}
+}  // namespace warden::services

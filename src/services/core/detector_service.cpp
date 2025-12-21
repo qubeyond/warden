@@ -1,14 +1,16 @@
-#include "services/detector_service.hpp"
+#include "services/core/detector_service.hpp"
+
 #include <algorithm>
 
 namespace warden::services {
 
 DetectorService::DetectorService(ScanService& ss, FeatureService& fs, ModelService& ms)
-    : scan_service_(ss), feature_service_(fs), model_service_(ms) {}
+    : scan_service_(ss), feature_service_(fs), model_service_(ms) {
+}
 
 DetectionResult DetectorService::process_file(const std::string& path, float threshold) {
     auto chunks = scan_service_.get_file_chunks(path);
-    
+
     if (chunks.empty()) {
         return {warden::common::Verdict::UNKNOWN, 0.0f, 0, 0, warden::common::FileType::OTHER};
     }
@@ -32,28 +34,30 @@ DetectionResult DetectorService::process_file(const std::string& path, float thr
     }
 
     warden::common::Verdict final_verdict = warden::common::Verdict::SAFE;
-    
+
     float suspicious_density = static_cast<float>(suspicious) / chunks.size();
 
     if (suspicious > 0) {
         if (file_type == warden::common::FileType::MEDIA) {
-            if (max_prob > 0.95f || suspicious_density > 0.8f) final_verdict = warden::common::Verdict::MALWARE;
-            else if (max_prob > 0.85f) final_verdict = warden::common::Verdict::SUSPICIOUS;
-        } 
-        else if (file_type == warden::common::FileType::ARCHIVE) {
+            if (max_prob > 0.95f || suspicious_density > 0.8f)
+                final_verdict = warden::common::Verdict::MALWARE;
+            else if (max_prob > 0.85f)
+                final_verdict = warden::common::Verdict::SUSPICIOUS;
+        } else if (file_type == warden::common::FileType::ARCHIVE) {
             if (max_prob > 0.90f || suspicious_density > 0.9f) {
                 final_verdict = warden::common::Verdict::MALWARE;
             } else {
                 final_verdict = warden::common::Verdict::SUSPICIOUS;
             }
-        }
-        else {
-            if (max_prob > 0.85f || suspicious > 3) final_verdict = warden::common::Verdict::MALWARE;
-            else final_verdict = warden::common::Verdict::SUSPICIOUS;
+        } else {
+            if (max_prob > 0.85f || suspicious > 3)
+                final_verdict = warden::common::Verdict::MALWARE;
+            else
+                final_verdict = warden::common::Verdict::SUSPICIOUS;
         }
     }
 
     return {final_verdict, max_prob, suspicious, chunks.size(), file_type};
 }
 
-} // namespace warden::services
+}  // namespace warden::services

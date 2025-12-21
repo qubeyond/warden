@@ -1,15 +1,18 @@
-#include "services/feature_service.hpp"
-#include "services/config_service.hpp"
+#include "services/core/feature_service.hpp"
+
 #include <gtest/gtest.h>
-#include <numeric>
-#include <vector>
+
 #include <fstream>
 #include <memory>
+#include <numeric>
+#include <vector>
+
+#include "services/system/config_service.hpp"
 
 using namespace warden::services;
 
 class FeatureServiceTest : public ::testing::Test {
-protected:
+   protected:
     std::unique_ptr<ConfigService> cs;
     std::unique_ptr<FeatureService> fs;
 
@@ -19,7 +22,8 @@ protected:
         app.close();
 
         std::ofstream model("feat_model.json");
-        model << R"({"model_file": "m.json", "threshold": 0.5, "n_features": 262, "model_type": "XGB"})";
+        model
+            << R"({"model_file": "m.json", "threshold": 0.5, "n_features": 262, "model_type": "XGB"})";
         model.close();
 
         std::ofstream prop("feat_prop.json");
@@ -52,10 +56,10 @@ TEST_F(FeatureServiceTest, StatisticsVerification) {
     std::vector<uint8_t> data = {0, 0, 1, 1, 2, 2, 3, 3};
     auto f = fs->extract_from_buffer(data);
 
-    EXPECT_GT(f[256], 0.0f); 
+    EXPECT_GT(f[256], 0.0f);
     EXPECT_NEAR(f[257], 1.5f, 0.01f);
     EXPECT_NEAR(f[258], 1.118f, 0.01f);
-    EXPECT_NEAR(f[261], 1.0f, 0.01f); 
+    EXPECT_NEAR(f[261], 1.0f, 0.01f);
 }
 
 TEST_F(FeatureServiceTest, EmptyBufferHandling) {

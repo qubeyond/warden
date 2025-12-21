@@ -1,3 +1,6 @@
+# Other
+local/
+
 # C++ / CMake
 build/
 bin/
