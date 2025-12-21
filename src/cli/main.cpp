@@ -17,11 +17,12 @@ int main(int argc, char** argv) {
     }
 
     try {
-        ConfigService config(warden::common::APP_CONFIG_PATH, warden::common::MODEL_CONFIG_PATH);
+        ConfigService config("configs/app_config.json", "configs/model_config_v2.json");
         
         ScanService scanner;
-        FeatureService extractor;
-        ModelService model(config.get_model_path());
+        FeatureService extractor(config);
+        ModelService model(config);
+        
         DetectorService detector(scanner, extractor, model);
 
         float threshold = (options.custom_threshold > 0) ? options.custom_threshold : config.get_threshold();

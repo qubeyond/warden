@@ -1,0 +1,7 @@
+{
+    "threshold": 0.4573809504508972,
+    "n_features": 262,
+    "accuracy": 0.87175,
+    "model_type": "XGBClassifier",
+    "model_file": "models/ransomware_model_v2.json"
+}

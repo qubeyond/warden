@@ -1,22 +1,21 @@
 #pragma once
 #include <xgboost/c_api.h>
-
 #include <string>
 #include <vector>
-
-#include "common/defs.hpp"
+#include "services/config_service.hpp"
 
 namespace warden::services {
 
 class ModelService {
-   public:
-    explicit ModelService(const std::string& model_path);
+public:
+    explicit ModelService(const ConfigService& config);
     ~ModelService();
 
     float predict(const std::vector<float>& features);
 
-   private:
+private:
+    const ConfigService& config_;
     BoosterHandle booster_;
 };
 
-}  // namespace warden::services
+}

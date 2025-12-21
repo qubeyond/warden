@@ -1,21 +1,31 @@
 #include "services/feature_service.hpp"
-
 #include <algorithm>
 #include <cmath>
 #include <numeric>
+#include <stdexcept>
 
 namespace warden::services {
 
+FeatureService::FeatureService(const ConfigService& config) : config_(config) {}
+
 std::vector<float> FeatureService::extract_from_buffer(const std::vector<uint8_t>& data) {
+    const size_t expected_features = config_.get_features();
+    
+    if (expected_features != 262) {
+        throw std::runtime_error("FeatureService logic mismatch: code expects 262, config says " 
+                                 + std::to_string(expected_features));
+    }
+
     if (data.empty()) {
-        return std::vector<float>(warden::common::FEATURES_COUNT, 0.0f);
+        return std::vector<float>(expected_features, 0.0f);
     }
 
     auto counts = calculate_histogram(data);
-    std::vector<float> f(warden::common::FEATURES_COUNT, 0.0f);
+    std::vector<float> f(expected_features, 0.0f);
 
-    for (size_t i = 0; i < warden::common::HIST_SIZE; ++i) {
-        f[i] = static_cast<float>(counts[i]) / data.size();
+    float total_size = static_cast<float>(data.size());
+    for (size_t i = 0; i < 256; ++i) {
+        f[i] = static_cast<float>(counts[i]) / total_size;
     }
 
     float mean = calculate_mean(data);
@@ -25,28 +35,27 @@ std::vector<float> FeatureService::extract_from_buffer(const std::vector<uint8_t
     f[258] = calculate_std(data, mean);
     f[259] = calculate_autocorr(data, mean);
     f[260] = calculate_chi_square(counts, data.size());
-    f[261] = 0.0f;
-    f[262] = calculate_zero_seq(data);
+    f[261] = calculate_zero_pairs(data);
 
     return f;
 }
 
 std::vector<uint64_t> FeatureService::calculate_histogram(const std::vector<uint8_t>& data) {
-    std::vector<uint64_t> counts(warden::common::HIST_SIZE, 0);
+    std::vector<uint64_t> counts(256, 0);
     for (uint8_t b : data) counts[b]++;
     return counts;
 }
 
 float FeatureService::calculate_entropy(const std::vector<uint64_t>& counts, size_t size) {
-    float entropy = 0.0f;
+    float ent = 0.0f;
     float total = static_cast<float>(size);
     for (auto c : counts) {
         if (c > 0) {
             float p = static_cast<float>(c) / total;
-            entropy -= p * std::log2(p);
+            ent -= p * std::log2(p);
         }
     }
-    return entropy;
+    return ent;
 }
 
 float FeatureService::calculate_mean(const std::vector<uint8_t>& data) {
@@ -71,11 +80,12 @@ float FeatureService::calculate_autocorr(const std::vector<uint8_t>& data, float
     for (uint8_t x : data) {
         den += std::pow(static_cast<float>(x) - mean, 2);
     }
-    return (den != 0) ? static_cast<float>(num / den) : 0.0f;
+    return (den > 1e-9) ? static_cast<float>(num / den) : 0.0f;
 }
 
 float FeatureService::calculate_chi_square(const std::vector<uint64_t>& counts, size_t size) {
-    float expected = static_cast<float>(size) / warden::common::HIST_SIZE;
+    if (size == 0) return 0.0f;
+    float expected = static_cast<float>(size) / 256.0f;
     float chi = 0.0f;
     for (auto c : counts) {
         chi += std::pow(static_cast<float>(c) - expected, 2) / expected;
@@ -83,17 +93,15 @@ float FeatureService::calculate_chi_square(const std::vector<uint64_t>& counts, 
     return chi;
 }
 
-float FeatureService::calculate_zero_seq(const std::vector<uint8_t>& data) {
-    uint32_t max_z = 0, cur_z = 0;
-    for (uint8_t x : data) {
-        if (x == 0)
-            cur_z++;
-        else {
-            max_z = std::max(max_z, cur_z);
-            cur_z = 0;
+float FeatureService::calculate_zero_pairs(const std::vector<uint8_t>& data) {
+    if (data.size() < 2) return 0.0f;
+    uint32_t pairs = 0;
+    for (size_t i = 0; i < data.size() - 1; ++i) {
+        if (data[i] == 0 && data[i + 1] == 0) {
+            pairs++;
         }
     }
-    return static_cast<float>(std::max(max_z, cur_z));
+    return static_cast<float>(pairs);
 }
 
-}  // namespace warden::services
+}
