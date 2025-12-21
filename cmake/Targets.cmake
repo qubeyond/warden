@@ -10,6 +10,7 @@ target_link_libraries(warden_core PUBLIC
     nlohmann_json::nlohmann_json
     XGBoost::xgboost
     Boost::boost
+    magic
 )
 
 add_executable(warden_cli 

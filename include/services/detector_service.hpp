@@ -14,6 +14,7 @@ struct DetectionResult {
     float max_probability;
     size_t suspicious_chunks;
     size_t total_chunks;
+    warden::common::FileType file_type;
 };
 
 class DetectorService {

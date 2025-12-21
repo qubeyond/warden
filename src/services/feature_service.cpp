@@ -3,6 +3,7 @@
 #include <cmath>
 #include <numeric>
 #include <stdexcept>
+#include <magic.h>
 
 namespace warden::services {
 
@@ -102,6 +103,36 @@ float FeatureService::calculate_zero_pairs(const std::vector<uint8_t>& data) {
         }
     }
     return static_cast<float>(pairs);
+}
+
+warden::common::FileType FeatureService::identify_file_type(const std::string& path) {
+    magic_t cookie = magic_open(MAGIC_MIME_TYPE);
+    if (cookie == nullptr) return warden::common::FileType::OTHER;
+
+    if (magic_load(cookie, nullptr) != 0) {
+        magic_close(cookie);
+        return warden::common::FileType::OTHER;
+    }
+
+    const char* mime = magic_file(cookie, path.c_str());
+    if (mime == nullptr) {
+        magic_close(cookie);
+        return warden::common::FileType::OTHER;
+    }
+
+    std::string s_mime(mime);
+    warden::common::FileType type = warden::common::FileType::OTHER;
+
+    if (s_mime.find("video/") == 0 || s_mime.find("image/") == 0 || s_mime == "application/pdf") {
+        type = warden::common::FileType::MEDIA;
+    } else if (s_mime.find("archive") != std::string::npos || s_mime == "application/zip" || s_mime == "application/x-rar") {
+        type = warden::common::FileType::ARCHIVE;
+    } else if (s_mime.find("application/x-executable") != std::string::npos || s_mime.find("application/x-sharedlib") != std::string::npos) {
+        type = warden::common::FileType::EXECUTABLE;
+    }
+
+    magic_close(cookie);
+    return type;
 }
 
 }

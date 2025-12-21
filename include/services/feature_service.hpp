@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 #include <vector>
+#include <magic.h>
+
 #include "services/config_service.hpp"
 
 namespace warden::services {
@@ -9,6 +11,7 @@ class FeatureService {
 public:
     explicit FeatureService(const ConfigService& config);
 
+    warden::common::FileType identify_file_type(const std::string& path);
     std::vector<float> extract_from_buffer(const std::vector<uint8_t>& data);
 
 private:

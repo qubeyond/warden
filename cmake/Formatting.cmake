@@ -8,9 +8,9 @@ if(CLANG_FORMAT_EXE)
     )
 
     add_custom_target(format
-        COMMAND ${CLANG_FORMAT_EXE} -i ${FORMAT_SOURCES}
+        COMMAND ${CLANG_FORMAT_EXE} -i -style=file ${FORMAT_SOURCES}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        COMMENT "Warden: Running clang-format on all sources..."
+        COMMENT "Warden: Formatting code according to .clang-format..."
         COMMAND_EXPAND_LISTS
         VERBATIM
     )
