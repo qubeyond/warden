@@ -2,8 +2,5 @@
     "database": { 
         "host": "localhost", 
         "port": 8123 
-    },
-    "scanner": { 
-        "watch_dirs": ["/tmp"] 
     }
 }

@@ -21,12 +21,16 @@ target_link_libraries(warden_cli PRIVATE
     CLI11::CLI11
 )
 
-function(copy_project_resources)
+function(copy_project_resources TARGET_NAME)
     set(RESOURCES "configs" "models")
     foreach(RES ${RESOURCES})
         if(EXISTS "${PROJECT_SOURCE_DIR}/${RES}/")
-            file(COPY "${PROJECT_SOURCE_DIR}/${RES}/" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/${RES}")
+            add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${PROJECT_SOURCE_DIR}/${RES}"
+                "$<TARGET_FILE_DIR:${TARGET_NAME}>/${RES}"
+                COMMENT "Copying ${RES} for ${TARGET_NAME}"
+            )
         endif()
     endforeach()
 endfunction()
-copy_project_resources()

@@ -1,12 +1,14 @@
 #include "services/scan_service.hpp"
-
-#include <algorithm>
-#include <fstream>
-#include <set>
-
+#include "services/config_service.hpp"
 #include "common/defs.hpp"
+#include <algorithm>
+#include <set>
+#include <cmath>
+#include <fstream>
 
 namespace warden::services {
+
+ScanService::ScanService(const ConfigService& config) : config_(config) {}
 
 std::vector<std::vector<uint8_t>> ScanService::get_file_chunks(const std::string& path) {
     std::ifstream file(path, std::ios::binary | std::ios::ate);
@@ -16,21 +18,21 @@ std::vector<std::vector<uint8_t>> ScanService::get_file_chunks(const std::string
     if (file_size == 0) return {};
 
     std::set<size_t> offsets;
+    const size_t chunk_sz = warden::common::CHUNK_SIZE;
+    const size_t min_c = config_.get_min_chunks();
+    const size_t max_c = config_.get_max_chunks();
 
-    offsets.insert(0);
-
-    for (int i = 1; i <= 9; ++i) {
-        size_t pos = (file_size * i) / 10;
-        if (pos + warden::common::CHUNK_SIZE > file_size) {
-            pos = (file_size > warden::common::CHUNK_SIZE)
-                      ? (file_size - warden::common::CHUNK_SIZE)
-                      : 0;
+    if (file_size <= chunk_sz * min_c) {
+        for (size_t offset = 0; offset < file_size; offset += chunk_sz) {
+            offsets.insert(offset);
         }
-        offsets.insert(pos);
-    }
+    } else {
+        size_t desired = std::clamp(file_size / (chunk_sz * 20), min_c, max_c);
+        double step = static_cast<double>(file_size - chunk_sz) / (desired - 1);
 
-    if (file_size > warden::common::CHUNK_SIZE) {
-        offsets.insert(file_size - warden::common::CHUNK_SIZE);
+        for (size_t i = 0; i < desired; ++i) {
+            offsets.insert(static_cast<size_t>(std::round(i * step)));
+        }
     }
 
     std::vector<std::vector<uint8_t>> chunks;
@@ -43,10 +45,10 @@ std::vector<std::vector<uint8_t>> ScanService::get_file_chunks(const std::string
 
 std::vector<uint8_t> ScanService::read_chunk(std::ifstream& file, size_t offset, size_t file_size) {
     file.seekg(offset, std::ios::beg);
-    size_t size_to_read = std::min(warden::common::CHUNK_SIZE, file_size - offset);
+    size_t to_read = std::min(warden::common::CHUNK_SIZE, file_size - offset);
 
-    std::vector<uint8_t> buffer(size_to_read);
-    file.read(reinterpret_cast<char*>(buffer.data()), size_to_read);
+    std::vector<uint8_t> buffer(to_read);
+    file.read(reinterpret_cast<char*>(buffer.data()), to_read);
 
     if (buffer.size() < warden::common::CHUNK_SIZE) {
         buffer.resize(warden::common::CHUNK_SIZE, 0);
@@ -55,4 +57,4 @@ std::vector<uint8_t> ScanService::read_chunk(std::ifstream& file, size_t offset,
     return buffer;
 }
 
-}  // namespace warden::services
+}

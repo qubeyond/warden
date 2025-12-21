@@ -1,0 +1,11 @@
+{
+    "scanner": {
+        "min_chunks": 10,
+        "max_chunks": 50,
+        "watch_dirs": [
+            "/home/vyach/course/data/samples",
+            "/tmp/uploads"
+        ],
+        "scan_step_multiplier": 20
+    }
+}

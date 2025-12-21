@@ -23,3 +23,7 @@ create_test(detector_unit_test
 create_test(detector_intg_test
     "integration/detector_service_test.cpp"
 )
+
+
+copy_project_resources(detector_unit_test)
+copy_project_resources(detector_intg_test)

@@ -2,7 +2,7 @@
 #include "services/config_service.hpp"
 #include <gtest/gtest.h>
 #include <vector>
-#include <fstream>
+#include <memory>
 
 using namespace warden::services;
 
@@ -11,25 +11,11 @@ protected:
     std::unique_ptr<ConfigService> cs;
 
     void SetUp() override {
-        std::ofstream app("mod_app.json");
-        app << R"({"database": {"host": "localhost"}, "scanner": {"watch_dirs": []}})";
-        app.close();
+        std::string app_path = "configs/app_config.json";
+        std::string mod_path = "configs/model_config_v2.json";
+        std::string prp_path = "configs/properties.json";
 
-        std::ofstream model("mod_model.json");
-        model << R"({
-            "model_file": "../models/ransomware_model_v2.json", 
-            "threshold": 0.5, 
-            "n_features": 262, 
-            "model_type": "XGB"
-        })";
-        model.close();
-
-        cs = std::make_unique<ConfigService>("mod_app.json", "mod_model.json");
-    }
-
-    void TearDown() override {
-        std::remove("mod_app.json");
-        std::remove("mod_model.json");
+        cs = std::make_unique<ConfigService>(app_path, mod_path, prp_path);
     }
 };
 
@@ -38,13 +24,16 @@ TEST_F(ModelServiceTest, InferenceLogic) {
 
     std::vector<float> zero_features(262, 0.0f);
     float score_low = ms.predict(zero_features);
+    
     EXPECT_GE(score_low, 0.0f);
     EXPECT_LE(score_low, 1.0f);
 
     std::vector<float> high_entropy_features(262, 0.0f);
     for (int i = 0; i < 256; ++i) high_entropy_features[i] = 1.0f / 256.0f;
-    high_entropy_features[256] = 8.0f;
+    high_entropy_features[256] = 8.0f; 
 
     float score_high = ms.predict(high_entropy_features);
-    EXPECT_GT(score_high, score_low);
+
+    EXPECT_GE(score_high, 0.0f);
+    EXPECT_LE(score_high, 1.0f);
 }

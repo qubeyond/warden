@@ -4,6 +4,7 @@
 #include <numeric>
 #include <vector>
 #include <fstream>
+#include <memory>
 
 using namespace warden::services;
 
@@ -14,20 +15,25 @@ protected:
 
     void SetUp() override {
         std::ofstream app("feat_app.json");
-        app << R"({"database": {"host": "localhost"}, "scanner": {"watch_dirs": []}})";
+        app << R"({"database": {"host": "localhost"}})";
         app.close();
 
         std::ofstream model("feat_model.json");
         model << R"({"model_file": "m.json", "threshold": 0.5, "n_features": 262, "model_type": "XGB"})";
         model.close();
 
-        cs = std::make_unique<ConfigService>("feat_app.json", "feat_model.json");
+        std::ofstream prop("feat_prop.json");
+        prop << R"({"scanner": {"min_chunks": 10, "max_chunks": 50}})";
+        prop.close();
+
+        cs = std::make_unique<ConfigService>("feat_app.json", "feat_model.json", "feat_prop.json");
         fs = std::make_unique<FeatureService>(*cs);
     }
 
     void TearDown() override {
         std::remove("feat_app.json");
         std::remove("feat_model.json");
+        std::remove("feat_prop.json");
     }
 };
 
