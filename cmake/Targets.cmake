@@ -34,3 +34,5 @@ function(copy_project_resources TARGET_NAME)
         endif()
     endforeach()
 endfunction()
+
+copy_project_resources(warden_cli)

@@ -22,7 +22,8 @@ bool CliService::parse(int argc, char** argv, CliOptions& options) {
     try {
         app.parse(argc, argv);
     } catch (const CLI::ParseError &e) {
-        return (app.exit(e) == 0);
+        app.exit(e); 
+        return false;
     }
     return true;
 }
