@@ -24,6 +24,6 @@ create_test(detector_intg_test
     "integration/detector_service_test.cpp"
 )
 
-
-copy_project_resources(detector_unit_test)
-copy_project_resources(detector_intg_test)
+create_test(monitor_intg_test
+    "integration/monitor_service_test.cpp"
+)

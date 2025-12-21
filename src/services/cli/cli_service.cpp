@@ -3,6 +3,7 @@
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
 #include <CLI/Formatter.hpp>
+#include <iomanip>
 #include <iostream>
 
 #include "services/core/detector_service.hpp"
@@ -12,9 +13,7 @@ namespace warden::services {
 bool CliService::parse(int argc, char** argv, CliOptions& options) {
     CLI::App app{"Warden AI - Machine Learning Malware Detector"};
 
-    app.add_option("file", options.file_path, "Path to the file to scan")
-        ->required()
-        ->check(CLI::ExistingFile);
+    app.add_option("file", options.file_path, "Path to the file to scan")->check(CLI::ExistingFile);
 
     app.add_flag("-v,--verbose", options.verbose, "Enable detailed chunk information");
 
