@@ -5,16 +5,16 @@
 #include <memory>
 #include <vector>
 
-#include "services/system/config_service.hpp"
+#include "common/config.hpp"
 
 using namespace warden::services;
 
 class ModelServiceTest : public ::testing::Test {
    protected:
-    std::shared_ptr<ConfigService> cs;
+    std::shared_ptr<ConfigManager> cs;
 
     void SetUp() override {
-        cs = ConfigService::load("configs/app_config.json", "configs/model_config_v2.json",
+        cs = ConfigManager::load("configs/app_config.json", "configs/model_config_v2.json",
                                  "configs/properties.json");
     }
 };

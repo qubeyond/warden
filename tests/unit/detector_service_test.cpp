@@ -2,10 +2,10 @@
 
 #include <gtest/gtest.h>
 
+#include "common/config.hpp"
 #include "services/core/feature_service.hpp"
 #include "services/core/model_service.hpp"
 #include "services/core/scan_service.hpp"
-#include "services/system/config_service.hpp"
 
 using namespace warden::services;
 
@@ -14,7 +14,7 @@ TEST(DetectorServiceUnitTest, LogicVerdictCalculation) {
     std::string m = "configs/model_config_v2.json";
     std::string p = "configs/properties.json";
 
-    auto cs = ConfigService::load(a, m, p);
+    auto cs = ConfigManager::load(a, m, p);
     ScanService ss(*cs);
     FeatureService fs(*cs);
     ModelService ms(*cs);

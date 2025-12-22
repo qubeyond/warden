@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "services/common/report_observer.hpp"
+#include "common/report_observer.hpp"
 
 namespace warden::services {
 

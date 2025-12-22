@@ -5,12 +5,12 @@
 #include <thread>
 #include <vector>
 
+#include "common/config.hpp"
 #include "services/cli/cli_service.hpp"
 #include "services/core/detector_service.hpp"
 #include "services/core/feature_service.hpp"
 #include "services/core/model_service.hpp"
 #include "services/core/scan_service.hpp"
-#include "services/system/config_service.hpp"
 #include "services/system/monitor_service.hpp"
 
 using namespace warden::services;
@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
     }
 
     try {
-        auto config = ConfigService::load("configs/app_config.json", "configs/model_config_v2.json",
+        auto config = ConfigManager::load("configs/app_config.json", "configs/model_config_v2.json",
                                           "configs/properties.json");
 
         ScanService scanner(*config);

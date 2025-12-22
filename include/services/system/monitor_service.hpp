@@ -6,16 +6,16 @@
 #include <thread>
 #include <vector>
 
-#include "services/common/report_observer.hpp"
+#include "common/report_observer.hpp"
 
 namespace warden::services {
 
 class DetectorService;
-class ConfigService;
+class ConfigManager;
 
 class MonitorService {
    public:
-    MonitorService(DetectorService& ds, const ConfigService& cs, IReportObserver& observer);
+    MonitorService(DetectorService& ds, const ConfigManager& cs, IReportObserver& observer);
     ~MonitorService();
 
     void start(const std::vector<std::string>& paths);
@@ -25,7 +25,7 @@ class MonitorService {
     void run();
 
     DetectorService& detector_;
-    const ConfigService& config_;
+    const ConfigManager& config_;
     IReportObserver& observer_;
 
     int fan_fd_ = -1;

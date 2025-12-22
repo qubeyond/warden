@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace warden::services {
-class ConfigService;
+class ConfigManager;
 }
 namespace warden::common {
 enum class FileType : uint8_t;
@@ -30,14 +30,14 @@ struct FeatureSet {
 
 class FeatureService {
    public:
-    explicit FeatureService(const ConfigService& config);
+    explicit FeatureService(const ConfigManager& config);
     ~FeatureService();
 
     warden::common::FileType identify_file_type(const std::string& path) const;
     FeatureSet extract_features(const std::vector<uint8_t>& data) const;
 
    private:
-    const ConfigService& config_;
+    const ConfigManager& config_;
     struct MagicDeleter {
         void operator()(struct magic_set* m) const;
     };

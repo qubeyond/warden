@@ -9,11 +9,11 @@
 #include <fstream>
 #include <thread>
 
+#include "common/config.hpp"
 #include "services/core/detector_service.hpp"
 #include "services/core/feature_service.hpp"
 #include "services/core/model_service.hpp"
 #include "services/core/scan_service.hpp"
-#include "services/system/config_service.hpp"
 
 using namespace warden::services;
 namespace fs = std::filesystem;
@@ -42,7 +42,7 @@ class MonitorIntegrationTest : public ::testing::Test {
 };
 
 TEST_F(MonitorIntegrationTest, DetectsNewFileWithFanotify) {
-    auto cs = ConfigService::load("configs/app_config.json", "configs/model_config_v2.json",
+    auto cs = ConfigManager::load("configs/app_config.json", "configs/model_config_v2.json",
                                   "configs/properties.json");
     ScanService ss(*cs);
     FeatureService fs_svc(*cs);

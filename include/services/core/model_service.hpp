@@ -6,14 +6,14 @@
 #include <vector>
 
 namespace warden::services {
-class ConfigService;
+class ConfigManager;
 }
 
 namespace warden::services {
 
 class ModelService {
    public:
-    explicit ModelService(const ConfigService& config);
+    explicit ModelService(const ConfigManager& config);
     ~ModelService();
 
     ModelService(const ModelService&) = delete;
@@ -22,7 +22,7 @@ class ModelService {
     float predict(const std::vector<float>& features);
 
    private:
-    const ConfigService& config_;
+    const ConfigManager& config_;
     void* booster_;
     mutable std::mutex model_mutex_;
 

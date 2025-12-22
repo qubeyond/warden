@@ -24,9 +24,9 @@ struct ScannerConfig {
     std::vector<std::string> watch_dirs;
 };
 
-class ConfigService {
+class ConfigManager {
    public:
-    static std::shared_ptr<ConfigService> load(const std::string& app_path,
+    static std::shared_ptr<ConfigManager> load(const std::string& app_path,
                                                const std::string& model_path,
                                                const std::string& prop_path);
 
@@ -41,7 +41,7 @@ class ConfigService {
     }
 
    private:
-    ConfigService() = default;
+    ConfigManager() = default;
 
     AppConfig app_;
     ModelConfig model_;

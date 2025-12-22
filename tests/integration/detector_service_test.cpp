@@ -7,23 +7,23 @@
 #include <memory>
 #include <vector>
 
+#include "common/config.hpp"
 #include "services/core/feature_service.hpp"
 #include "services/core/model_service.hpp"
 #include "services/core/scan_service.hpp"
-#include "services/system/config_service.hpp"
 
 using namespace warden::services;
 using namespace warden::common;
 
 class DetectorIntegrationTest : public ::testing::Test {
    protected:
-    std::shared_ptr<ConfigService> cs;
+    std::shared_ptr<ConfigManager> cs;
     std::unique_ptr<ScanService> ss;
     std::unique_ptr<FeatureService> fs;
     std::unique_ptr<ModelService> ms;
 
     void SetUp() override {
-        cs = ConfigService::load("configs/app_config.json", "configs/model_config_v2.json",
+        cs = ConfigManager::load("configs/app_config.json", "configs/model_config_v2.json",
                                  "configs/properties.json");
         ss = std::make_unique<ScanService>(*cs);
         fs = std::make_unique<FeatureService>(*cs);

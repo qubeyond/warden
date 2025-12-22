@@ -4,12 +4,12 @@
 #include <cmath>
 #include <fstream>
 
+#include "common/config.hpp"
 #include "common/defs.hpp"
-#include "services/system/config_service.hpp"
 
 namespace warden::services {
 
-ScanService::ScanService(const ConfigService& config) : config_(config) {
+ScanService::ScanService(const ConfigManager& config) : config_(config) {
 }
 
 std::vector<std::vector<uint8_t>> ScanService::get_file_chunks(const std::string& path) const {

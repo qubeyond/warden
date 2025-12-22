@@ -7,13 +7,13 @@
 #include <numeric>
 #include <vector>
 
-#include "services/system/config_service.hpp"
+#include "common/config.hpp"
 
 using namespace warden::services;
 
 class FeatureServiceTest : public ::testing::Test {
    protected:
-    std::shared_ptr<ConfigService> cs;
+    std::shared_ptr<ConfigManager> cs;
     std::unique_ptr<FeatureService> fs;
 
     void SetUp() override {
@@ -29,7 +29,7 @@ class FeatureServiceTest : public ::testing::Test {
         prop << R"({"scanner": {"min_chunks": 10, "max_chunks": 50}})";
         prop.close();
 
-        cs = ConfigService::load("feat_app.json", "feat_model.json", "feat_prop.json");
+        cs = ConfigManager::load("feat_app.json", "feat_model.json", "feat_prop.json");
         fs = std::make_unique<FeatureService>(*cs);
     }
 

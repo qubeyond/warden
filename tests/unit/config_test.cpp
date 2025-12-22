@@ -1,4 +1,4 @@
-#include "services/system/config_service.hpp"
+#include "common/config.hpp"
 
 #include <gtest/gtest.h>
 
@@ -7,7 +7,7 @@
 
 using namespace warden::services;
 
-class ConfigServiceTest : public ::testing::Test {
+class ConfigManagerTest : public ::testing::Test {
    protected:
     void SetUp() override {
         std::ofstream app("test_app.json");
@@ -30,8 +30,8 @@ class ConfigServiceTest : public ::testing::Test {
     }
 };
 
-TEST_F(ConfigServiceTest, LoadsCorrectValues) {
-    auto cs = ConfigService::load("test_app.json", "test_model.json", "test_prop.json");
+TEST_F(ConfigManagerTest, LoadsCorrectValues) {
+    auto cs = ConfigManager::load("test_app.json", "test_model.json", "test_prop.json");
     EXPECT_EQ(cs->app().db_host, "127.0.0.1");
     EXPECT_FLOAT_EQ(cs->model().threshold, 0.5f);
     EXPECT_EQ(cs->scanner().min_chunks, 5);

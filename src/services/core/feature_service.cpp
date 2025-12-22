@@ -8,8 +8,8 @@
 #include <stdexcept>
 #include <string_view>
 
+#include "common/config.hpp"
 #include "common/defs.hpp"
-#include "services/system/config_service.hpp"
 
 namespace warden::services {
 
@@ -30,7 +30,7 @@ void FeatureService::MagicDeleter::operator()(::magic_set* m) const {
     if (m) magic_close(m);
 }
 
-FeatureService::FeatureService(const ConfigService& config) : config_(config) {
+FeatureService::FeatureService(const ConfigManager& config) : config_(config) {
     init_magic();
 }
 

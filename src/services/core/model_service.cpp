@@ -4,7 +4,7 @@
 
 #include <stdexcept>
 
-#include "services/system/config_service.hpp"
+#include "common/config.hpp"
 
 namespace warden::services {
 
@@ -17,7 +17,7 @@ struct DMatrixGuard {
     }
 };
 
-ModelService::ModelService(const ConfigService& config) : config_(config), booster_(nullptr) {
+ModelService::ModelService(const ConfigManager& config) : config_(config), booster_(nullptr) {
     std::string model_path = config_.model().path;
     BoosterHandle bh;
 

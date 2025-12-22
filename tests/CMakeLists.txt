@@ -1,7 +1,7 @@
 include(Tests)
 
 create_test(config_unit_test
-    "unit/config_service_test.cpp"
+    "unit/config_test.cpp"
 )
 
 create_test(feature_unit_test

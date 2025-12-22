@@ -5,8 +5,8 @@
 #include <fstream>
 #include <vector>
 
+#include "common/config.hpp"
 #include "common/defs.hpp"
-#include "services/system/config_service.hpp"
 
 using namespace warden::services;
 using namespace warden::common;
@@ -14,7 +14,7 @@ using namespace warden::common::constants;
 
 class ScanServiceTest : public ::testing::Test {
    protected:
-    std::shared_ptr<ConfigService> cs;
+    std::shared_ptr<ConfigManager> cs;
 
     void SetUp() override {
         std::ofstream app("s_app.json");
@@ -26,7 +26,7 @@ class ScanServiceTest : public ::testing::Test {
         std::ofstream prp("s_prp.json");
         prp << R"({"scanner": {"min_chunks": 10, "max_chunks": 50}})";
         prp.close();
-        cs = ConfigService::load("s_app.json", "s_mod.json", "s_prp.json");
+        cs = ConfigManager::load("s_app.json", "s_mod.json", "s_prp.json");
     }
 
     void create_dummy(const std::string& p, size_t s) {

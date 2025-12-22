@@ -11,12 +11,12 @@
 #include <stdexcept>
 #include <string>
 
+#include "common/config.hpp"
 #include "services/core/detector_service.hpp"
-#include "services/system/config_service.hpp"
 
 namespace warden::services {
 
-MonitorService::MonitorService(DetectorService& ds, const ConfigService& cs,
+MonitorService::MonitorService(DetectorService& ds, const ConfigManager& cs,
                                IReportObserver& observer)
     : detector_(ds), config_(cs), observer_(observer) {
     fan_fd_ = fanotify_init(FAN_CLASS_NOTIF | FAN_CLOEXEC, O_RDONLY | O_LARGEFILE);

@@ -1,7 +1,7 @@
 file(GLOB_RECURSE CORE_SOURCES CONFIGURE_DEPENDS 
     "${PROJECT_SOURCE_DIR}/src/services/core/*.cpp"
     "${PROJECT_SOURCE_DIR}/src/services/detector_service.cpp"
-    "${PROJECT_SOURCE_DIR}/src/services/system/config_service.cpp"
+    "${PROJECT_SOURCE_DIR}/src/services/system/config.cpp"
 )
 
 add_library(warden_core SHARED ${CORE_SOURCES})
@@ -22,7 +22,7 @@ file(GLOB_RECURSE SYSTEM_SOURCES CONFIGURE_DEPENDS
     "${PROJECT_SOURCE_DIR}/src/services/system/*.cpp"
 )
 
-list(REMOVE_ITEM SYSTEM_SOURCES "${PROJECT_SOURCE_DIR}/src/services/system/config_service.cpp")
+list(REMOVE_ITEM SYSTEM_SOURCES "${PROJECT_SOURCE_DIR}/src/services/system/config.cpp")
 
 add_library(warden_system SHARED ${SYSTEM_SOURCES})
 

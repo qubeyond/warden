@@ -1,11 +1,11 @@
-#include "services/system/config_service.hpp"
-
 #include <fstream>
 #include <stdexcept>
 
+#include "common/config.hpp"
+
 namespace warden::services {
 
-nlohmann::json ConfigService::parse_file(const std::string& path) {
+nlohmann::json ConfigManager::parse_file(const std::string& path) {
     std::ifstream f(path);
     if (!f.is_open()) {
         throw std::runtime_error("Critical: Configuration file not found: " + path);
@@ -17,10 +17,10 @@ nlohmann::json ConfigService::parse_file(const std::string& path) {
     }
 }
 
-std::shared_ptr<ConfigService> ConfigService::load(const std::string& app_path,
+std::shared_ptr<ConfigManager> ConfigManager::load(const std::string& app_path,
                                                    const std::string& model_path,
                                                    const std::string& prop_path) {
-    auto cfg = std::shared_ptr<ConfigService>(new ConfigService());
+    auto cfg = std::shared_ptr<ConfigManager>(new ConfigManager());
 
     // App Config
     auto j_app = parse_file(app_path);
