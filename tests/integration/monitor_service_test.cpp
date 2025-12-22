@@ -55,7 +55,7 @@ TEST_F(MonitorIntegrationTest, DetectsNewFileWithFanotify) {
     monitor.start({fs::absolute(test_dir).string()});
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-    std::string file_path = fs::absolute(test_dir + "/test_malware.bin").string();
+    std::string file_path = fs::absolute(test_dir + "/test_MALICIOUS.bin").string();
     std::string cmd = "dd if=/dev/urandom of=" + file_path + " bs=1024 count=1 2>/dev/null";
 
     int status = std::system(cmd.c_str());

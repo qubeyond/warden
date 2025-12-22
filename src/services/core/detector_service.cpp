@@ -57,17 +57,17 @@ warden::common::Verdict DetectorService::calculate_verdict(warden::common::FileT
 
     switch (type) {
         case warden::common::FileType::MEDIA:
-            if (max_prob > 0.95f || density > 0.8f) return warden::common::Verdict::MALWARE;
+            if (max_prob > 0.95f || density > 0.8f) return warden::common::Verdict::MALICIOUS;
             if (max_prob > 0.85f) return warden::common::Verdict::SUSPICIOUS;
             break;
 
         case warden::common::FileType::ARCHIVE:
-            if (max_prob > 0.90f || density > 0.9f) return warden::common::Verdict::MALWARE;
+            if (max_prob > 0.90f || density > 0.9f) return warden::common::Verdict::MALICIOUS;
             return warden::common::Verdict::SUSPICIOUS;
 
         case warden::common::FileType::EXECUTABLE:
         case warden::common::FileType::OTHER:
-            if (max_prob > 0.85f || suspicious > 3) return warden::common::Verdict::MALWARE;
+            if (max_prob > 0.85f || suspicious > 3) return warden::common::Verdict::MALICIOUS;
             return warden::common::Verdict::SUSPICIOUS;
     }
 

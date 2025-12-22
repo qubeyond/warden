@@ -13,7 +13,7 @@
 namespace warden::services {
 
 bool CliService::parse(int argc, char** argv, CliOptions& options) {
-    CLI::App app{"Warden AI - Machine Learning Malware Detector"};
+    CLI::App app{"Warden AI - Machine Learning MALICIOUS Detector"};
 
     auto scan_cmd = app.add_subcommand("scan", "Scan a single file");
     scan_cmd->add_option("file", options.file_path, "Path to file")
@@ -57,8 +57,8 @@ void CliService::print_report(const std::string& path, const DetectionResult& re
 
     std::string v_str;
     std::string v_color = RESET;
-    if (result.verdict == warden::common::Verdict::MALWARE) {
-        v_str = "[!] MALWARE";
+    if (result.verdict == warden::common::Verdict::MALICIOUS) {
+        v_str = "[!] MALICIOUS";
         v_color = R;
     } else if (result.verdict == warden::common::Verdict::SUSPICIOUS) {
         v_str = "[?] SUSPICIOUS";

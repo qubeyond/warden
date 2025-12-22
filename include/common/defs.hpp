@@ -4,7 +4,7 @@
 
 namespace warden::common {
 
-enum class Verdict : int8_t { SAFE = 0, MALWARE = 1, SUSPICIOUS = 2, UNKNOWN = -1 };
+enum class Verdict : int8_t { SAFE = 0, MALICIOUS = 1, SUSPICIOUS = 2, UNKNOWN = -1 };
 
 enum class FileType : uint8_t { MEDIA, ARCHIVE, EXECUTABLE, OTHER };
 
