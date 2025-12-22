@@ -10,6 +10,7 @@
 
 using namespace warden::services;
 using namespace warden::common;
+using namespace warden::common::constants;
 
 class ScanServiceTest : public ::testing::Test {
    protected:

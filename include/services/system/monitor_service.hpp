@@ -1,5 +1,7 @@
 #pragma once
+
 #include <atomic>
+#include <cstdint>
 #include <string>
 #include <thread>
 #include <vector>
@@ -13,7 +15,7 @@ class ConfigService;
 
 class MonitorService {
    public:
-    MonitorService(DetectorService& ds, ConfigService& cs, IReportObserver& observer);
+    MonitorService(DetectorService& ds, const ConfigService& cs, IReportObserver& observer);
     ~MonitorService();
 
     void start(const std::vector<std::string>& paths);
@@ -23,7 +25,7 @@ class MonitorService {
     void run();
 
     DetectorService& detector_;
-    ConfigService& config_;
+    const ConfigService& config_;
     IReportObserver& observer_;
 
     int fan_fd_ = -1;

@@ -1,10 +1,13 @@
 #pragma once
-#include <xgboost/c_api.h>
 
+#include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
-#include "services/system/config_service.hpp"
+namespace warden::services {
+class ConfigService;
+}
 
 namespace warden::services {
 
@@ -13,11 +16,17 @@ class ModelService {
     explicit ModelService(const ConfigService& config);
     ~ModelService();
 
+    ModelService(const ModelService&) = delete;
+    ModelService& operator=(const ModelService&) = delete;
+
     float predict(const std::vector<float>& features);
 
    private:
     const ConfigService& config_;
-    BoosterHandle booster_;
+    void* booster_;
+    mutable std::mutex model_mutex_;
+
+    void check_xgboost_error(int code, const std::string& msg) const;
 };
 
 }  // namespace warden::services

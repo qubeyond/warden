@@ -6,138 +6,125 @@
 #include <cmath>
 #include <numeric>
 #include <stdexcept>
+#include <string_view>
+
+#include "common/defs.hpp"
+#include "services/system/config_service.hpp"
 
 namespace warden::services {
 
-FeatureService::FeatureService(const ConfigService& config) : config_(config) {
-}
-
-std::vector<float> FeatureService::extract_from_buffer(const std::vector<uint8_t>& data) {
-    const size_t expected_features = config_.get_features();
-
-    if (expected_features != 262) {
-        throw std::runtime_error("FeatureService logic mismatch: code expects 262, config says " +
-                                 std::to_string(expected_features));
-    }
-
-    if (data.empty()) {
-        return std::vector<float>(expected_features, 0.0f);
-    }
-
-    auto counts = calculate_histogram(data);
-    std::vector<float> f(expected_features, 0.0f);
-
-    float total_size = static_cast<float>(data.size());
-    for (size_t i = 0; i < 256; ++i) {
-        f[i] = static_cast<float>(counts[i]) / total_size;
-    }
-
-    float mean = calculate_mean(data);
-
-    f[256] = calculate_entropy(counts, data.size());
-    f[257] = mean;
-    f[258] = calculate_std(data, mean);
-    f[259] = calculate_autocorr(data, mean);
-    f[260] = calculate_chi_square(counts, data.size());
-    f[261] = calculate_zero_pairs(data);
-
+std::vector<float> FeatureSet::flatten() const {
+    std::vector<float> f;
+    f.reserve(262);
+    f.insert(f.end(), histogram.begin(), histogram.end());
+    f.push_back(entropy);
+    f.push_back(mean);
+    f.push_back(std_dev);
+    f.push_back(autocorrelation);
+    f.push_back(chi_square);
+    f.push_back(zero_pairs);
     return f;
 }
 
-std::vector<uint64_t> FeatureService::calculate_histogram(const std::vector<uint8_t>& data) {
+void FeatureService::MagicDeleter::operator()(::magic_set* m) const {
+    if (m) magic_close(m);
+}
+
+FeatureService::FeatureService(const ConfigService& config) : config_(config) {
+    init_magic();
+}
+
+FeatureService::~FeatureService() = default;
+
+void FeatureService::init_magic() {
+    auto cookie = magic_open(MAGIC_MIME_TYPE);
+    if (!cookie || magic_load(cookie, nullptr) != 0) {
+        throw std::runtime_error("Failed to initialize libmagic");
+    }
+    magic_cookie_.reset(cookie);
+}
+
+FeatureSet FeatureService::extract_features(const std::vector<uint8_t>& data) const {
+    const size_t expected_features = config_.get_features();
+    if (expected_features != 262) {
+        throw std::runtime_error("FeatureService logic mismatch: expected 262 features");
+    }
+
+    FeatureSet fs;
+    fs.histogram.assign(256, 0.0f);
+    if (data.empty()) return fs;
+
+    size_t n = data.size();
+    double sum = 0.0;
+    double M2 = 0.0;
+    double auto_dot_product = 0.0;
+    uint32_t zero_pairs_count = 0;
     std::vector<uint64_t> counts(256, 0);
-    for (uint8_t b : data) counts[b]++;
-    return counts;
-}
 
-float FeatureService::calculate_entropy(const std::vector<uint64_t>& counts, size_t size) {
-    float ent = 0.0f;
-    float total = static_cast<float>(size);
-    for (auto c : counts) {
-        if (c > 0) {
-            float p = static_cast<float>(c) / total;
-            ent -= p * std::log2(p);
+    double mean_incremental = 0.0;
+    for (size_t i = 0; i < n; ++i) {
+        uint8_t val = data[i];
+        counts[val]++;
+
+        double delta = val - mean_incremental;
+        mean_incremental += delta / (i + 1);
+        double delta2 = val - mean_incremental;
+        M2 += delta * delta2;
+
+        if (i < n - 1) {
+            auto_dot_product += static_cast<double>(val) * data[i + 1];
+            if (val == 0 && data[i + 1] == 0) zero_pairs_count++;
         }
+        sum += val;
     }
-    return ent;
+
+    fs.mean = static_cast<float>(mean_incremental);
+    double variance = (n > 1) ? M2 / n : 0.0;
+    fs.std_dev = std::sqrt(static_cast<float>(variance));
+
+    double total_f = static_cast<double>(n);
+    for (size_t i = 0; i < 256; ++i) {
+        float p = static_cast<float>(counts[i] / total_f);
+        fs.histogram[i] = p;
+        if (p > 0.0f) fs.entropy -= p * std::log2(p);
+    }
+
+    float expected_chi = static_cast<float>(total_f / 256.0);
+    for (uint64_t c : counts) {
+        float diff = static_cast<float>(c) - expected_chi;
+        fs.chi_square += (diff * diff) / expected_chi;
+    }
+
+    if (n > 1 && variance > 1e-9) {
+        double cov = (auto_dot_product / (total_f - 1)) - (sum * sum / (total_f * (total_f - 1)));
+        fs.autocorrelation = static_cast<float>(cov / variance);
+    }
+
+    fs.zero_pairs = static_cast<float>(zero_pairs_count);
+    return fs;
 }
 
-float FeatureService::calculate_mean(const std::vector<uint8_t>& data) {
-    double sum = std::accumulate(data.begin(), data.end(), 0.0);
-    return static_cast<float>(sum / data.size());
-}
+warden::common::FileType FeatureService::identify_file_type(const std::string& path) const {
+    const char* mime = magic_file(magic_cookie_.get(), path.c_str());
+    if (!mime) return warden::common::FileType::OTHER;
 
-float FeatureService::calculate_std(const std::vector<uint8_t>& data, float mean) {
-    double variance = 0.0;
-    for (uint8_t x : data) {
-        variance += std::pow(static_cast<float>(x) - mean, 2);
-    }
-    return std::sqrt(static_cast<float>(variance / data.size()));
-}
-
-float FeatureService::calculate_autocorr(const std::vector<uint8_t>& data, float mean) {
-    if (data.size() < 2) return 0.0f;
-    double num = 0.0, den = 0.0;
-    for (size_t i = 0; i < data.size() - 1; ++i) {
-        num += (static_cast<float>(data[i]) - mean) * (static_cast<float>(data[i + 1]) - mean);
-    }
-    for (uint8_t x : data) {
-        den += std::pow(static_cast<float>(x) - mean, 2);
-    }
-    return (den > 1e-9) ? static_cast<float>(num / den) : 0.0f;
-}
-
-float FeatureService::calculate_chi_square(const std::vector<uint64_t>& counts, size_t size) {
-    if (size == 0) return 0.0f;
-    float expected = static_cast<float>(size) / 256.0f;
-    float chi = 0.0f;
-    for (auto c : counts) {
-        chi += std::pow(static_cast<float>(c) - expected, 2) / expected;
-    }
-    return chi;
-}
-
-float FeatureService::calculate_zero_pairs(const std::vector<uint8_t>& data) {
-    if (data.size() < 2) return 0.0f;
-    uint32_t pairs = 0;
-    for (size_t i = 0; i < data.size() - 1; ++i) {
-        if (data[i] == 0 && data[i + 1] == 0) {
-            pairs++;
-        }
-    }
-    return static_cast<float>(pairs);
-}
-
-warden::common::FileType FeatureService::identify_file_type(const std::string& path) {
-    magic_t cookie = magic_open(MAGIC_MIME_TYPE);
-    if (cookie == nullptr) return warden::common::FileType::OTHER;
-
-    if (magic_load(cookie, nullptr) != 0) {
-        magic_close(cookie);
-        return warden::common::FileType::OTHER;
-    }
-
-    const char* mime = magic_file(cookie, path.c_str());
-    if (mime == nullptr) {
-        magic_close(cookie);
-        return warden::common::FileType::OTHER;
-    }
-
-    std::string s_mime(mime);
-    warden::common::FileType type = warden::common::FileType::OTHER;
+    std::string_view s_mime(mime);
 
     if (s_mime.find("video/") == 0 || s_mime.find("image/") == 0 || s_mime == "application/pdf") {
-        type = warden::common::FileType::MEDIA;
-    } else if (s_mime.find("archive") != std::string::npos || s_mime == "application/zip" ||
-               s_mime == "application/x-rar") {
-        type = warden::common::FileType::ARCHIVE;
-    } else if (s_mime.find("application/x-executable") != std::string::npos ||
-               s_mime.find("application/x-sharedlib") != std::string::npos) {
-        type = warden::common::FileType::EXECUTABLE;
+        return warden::common::FileType::MEDIA;
     }
 
-    magic_close(cookie);
-    return type;
+    if (s_mime.find("archive") != std::string_view::npos || s_mime == "application/zip" ||
+        s_mime == "application/x-rar") {
+        return warden::common::FileType::ARCHIVE;
+    }
+
+    if (s_mime.find("executable") != std::string_view::npos ||
+        s_mime.find("sharedlib") != std::string_view::npos) {
+        return warden::common::FileType::EXECUTABLE;
+    }
+
+    return warden::common::FileType::OTHER;
 }
 
 }  // namespace warden::services

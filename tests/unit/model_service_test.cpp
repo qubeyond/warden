@@ -17,7 +17,6 @@ class ModelServiceTest : public ::testing::Test {
         std::string app_path = "configs/app_config.json";
         std::string mod_path = "configs/model_config_v2.json";
         std::string prp_path = "configs/properties.json";
-
         cs = std::make_unique<ConfigService>(app_path, mod_path, prp_path);
     }
 };

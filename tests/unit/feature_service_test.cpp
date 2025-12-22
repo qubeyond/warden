@@ -45,7 +45,7 @@ TEST_F(FeatureServiceTest, ByteHistogramOrder) {
     std::vector<uint8_t> data(100, 0x00);
     data.insert(data.end(), 300, 0xFF);
 
-    auto f = fs->extract_from_buffer(data);
+    auto f = fs->extract_features(data).flatten();
 
     ASSERT_EQ(f.size(), 262);
     EXPECT_NEAR(f[0], 0.25f, 0.001f);
@@ -54,7 +54,7 @@ TEST_F(FeatureServiceTest, ByteHistogramOrder) {
 
 TEST_F(FeatureServiceTest, StatisticsVerification) {
     std::vector<uint8_t> data = {0, 0, 1, 1, 2, 2, 3, 3};
-    auto f = fs->extract_from_buffer(data);
+    auto f = fs->extract_features(data).flatten();
 
     EXPECT_GT(f[256], 0.0f);
     EXPECT_NEAR(f[257], 1.5f, 0.01f);
@@ -64,7 +64,7 @@ TEST_F(FeatureServiceTest, StatisticsVerification) {
 
 TEST_F(FeatureServiceTest, EmptyBufferHandling) {
     std::vector<uint8_t> empty_data;
-    auto f = fs->extract_from_buffer(empty_data);
+    auto f = fs->extract_features(empty_data).flatten();
 
     ASSERT_EQ(f.size(), 262);
     for (float val : f) {
@@ -76,6 +76,6 @@ TEST_F(FeatureServiceTest, ChiSquareCalculation) {
     std::vector<uint8_t> data(256);
     std::iota(data.begin(), data.end(), 0);
 
-    auto f = fs->extract_from_buffer(data);
+    auto f = fs->extract_features(data).flatten();
     EXPECT_NEAR(f[260], 0.0f, 0.001f);
 }

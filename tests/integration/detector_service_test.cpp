@@ -7,6 +7,9 @@
 #include <memory>
 #include <vector>
 
+#include "services/core/feature_service.hpp"
+#include "services/core/model_service.hpp"
+#include "services/core/scan_service.hpp"
 #include "services/system/config_service.hpp"
 
 using namespace warden::services;

@@ -10,6 +10,9 @@
 #include <thread>
 
 #include "services/core/detector_service.hpp"
+#include "services/core/feature_service.hpp"
+#include "services/core/model_service.hpp"
+#include "services/core/scan_service.hpp"
 #include "services/system/config_service.hpp"
 
 using namespace warden::services;
@@ -21,6 +24,7 @@ class TestObserver : public IReportObserver {
     std::string last_path;
 
     void notify_detection(const std::string& path, const DetectionResult& result) override {
+        (void)result;
         last_path = path;
         detected = true;
     }
@@ -61,9 +65,10 @@ TEST_F(MonitorIntegrationTest, DetectsNewFileWithFanotify) {
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     std::string file_path = fs::absolute(test_dir + "/test_malware.bin").string();
-
     std::string cmd = "dd if=/dev/urandom of=" + file_path + " bs=1024 count=1 2>/dev/null";
-    std::system(cmd.c_str());
+
+    int res = std::system(cmd.c_str());
+    (void)res;
 
     bool success = false;
     for (int i = 0; i < 30; ++i) {
@@ -104,7 +109,8 @@ TEST_F(MonitorIntegrationTest, HandlesRapidFileCreation) {
     for (int i = 0; i < 5; ++i) {
         std::string path = fs::absolute(test_dir + "/file_" + std::to_string(i) + ".bin").string();
         std::string cmd = "echo 'data' > " + path;
-        std::system(cmd.c_str());
+        int res = std::system(cmd.c_str());
+        (void)res;
     }
 
     bool success = false;

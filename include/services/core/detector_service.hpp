@@ -1,13 +1,16 @@
 #pragma once
+
+#include <cstdint>
 #include <string>
 #include <vector>
 
 #include "common/defs.hpp"
-#include "services/core/feature_service.hpp"
-#include "services/core/model_service.hpp"
-#include "services/core/scan_service.hpp"
 
 namespace warden::services {
+
+class ScanService;
+class FeatureService;
+class ModelService;
 
 struct DetectionResult {
     warden::common::Verdict verdict;
@@ -21,9 +24,13 @@ struct DetectionResult {
 class DetectorService {
    public:
     DetectorService(ScanService& ss, FeatureService& fs, ModelService& ms);
+
     DetectionResult process_file(const std::string& path, float threshold);
 
    private:
+    warden::common::Verdict calculate_verdict(warden::common::FileType type, float max_prob,
+                                              size_t suspicious, size_t total) const;
+
     ScanService& scan_service_;
     FeatureService& feature_service_;
     ModelService& model_service_;

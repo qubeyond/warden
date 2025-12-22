@@ -2,6 +2,11 @@
 
 #include <algorithm>
 
+#include "common/defs.hpp"
+#include "services/core/feature_service.hpp"
+#include "services/core/model_service.hpp"
+#include "services/core/scan_service.hpp"
+
 namespace warden::services {
 
 DetectorService::DetectorService(ScanService& ss, FeatureService& fs, ModelService& ms)
@@ -9,55 +14,64 @@ DetectorService::DetectorService(ScanService& ss, FeatureService& fs, ModelServi
 }
 
 DetectionResult DetectorService::process_file(const std::string& path, float threshold) {
-    auto chunks = scan_service_.get_file_chunks(path);
-
+    const auto chunks = scan_service_.get_file_chunks(path);
     if (chunks.empty()) {
         return {warden::common::Verdict::UNKNOWN, 0.0f, 0, 0, warden::common::FileType::OTHER};
     }
 
-    auto file_type = feature_service_.identify_file_type(path);
-
+    const auto file_type = feature_service_.identify_file_type(path);
     float max_prob = 0.0f;
-    size_t suspicious = 0;
+    size_t suspicious_count = 0;
 
     for (const auto& chunk : chunks) {
-        auto features = feature_service_.extract_from_buffer(chunk);
-        float prob = model_service_.predict(features);
+        const auto feature_set = feature_service_.extract_features(chunk);
+
+        const auto flat_features = feature_set.flatten();
+
+        float prob = model_service_.predict(flat_features);
 
         float adjusted_prob = prob;
-        // Применяем штрафы за формат
-        if (file_type == warden::common::FileType::MEDIA) adjusted_prob *= 0.75f;
-        if (file_type == warden::common::FileType::ARCHIVE) adjusted_prob *= 0.88f;
+        if (file_type == warden::common::FileType::MEDIA)
+            adjusted_prob *= 0.75f;
+        else if (file_type == warden::common::FileType::ARCHIVE)
+            adjusted_prob *= 0.88f;
 
         max_prob = std::max(max_prob, adjusted_prob);
-        if (adjusted_prob >= threshold) suspicious++;
-    }
-
-    warden::common::Verdict final_verdict = warden::common::Verdict::SAFE;
-
-    float suspicious_density = static_cast<float>(suspicious) / chunks.size();
-
-    if (suspicious > 0) {
-        if (file_type == warden::common::FileType::MEDIA) {
-            if (max_prob > 0.95f || suspicious_density > 0.8f)
-                final_verdict = warden::common::Verdict::MALWARE;
-            else if (max_prob > 0.85f)
-                final_verdict = warden::common::Verdict::SUSPICIOUS;
-        } else if (file_type == warden::common::FileType::ARCHIVE) {
-            if (max_prob > 0.90f || suspicious_density > 0.9f) {
-                final_verdict = warden::common::Verdict::MALWARE;
-            } else {
-                final_verdict = warden::common::Verdict::SUSPICIOUS;
-            }
-        } else {
-            if (max_prob > 0.85f || suspicious > 3)
-                final_verdict = warden::common::Verdict::MALWARE;
-            else
-                final_verdict = warden::common::Verdict::SUSPICIOUS;
+        if (adjusted_prob >= threshold) {
+            suspicious_count++;
         }
     }
 
-    return {final_verdict, max_prob, suspicious, chunks.size(), file_type};
+    const warden::common::Verdict final_verdict =
+        calculate_verdict(file_type, max_prob, suspicious_count, chunks.size());
+
+    return {final_verdict, max_prob, suspicious_count, chunks.size(), file_type};
+}
+
+warden::common::Verdict DetectorService::calculate_verdict(warden::common::FileType type,
+                                                           float max_prob, size_t suspicious,
+                                                           size_t total) const {
+    if (suspicious == 0) return warden::common::Verdict::SAFE;
+
+    float density = static_cast<float>(suspicious) / static_cast<float>(total);
+
+    switch (type) {
+        case warden::common::FileType::MEDIA:
+            if (max_prob > 0.95f || density > 0.8f) return warden::common::Verdict::MALWARE;
+            if (max_prob > 0.85f) return warden::common::Verdict::SUSPICIOUS;
+            break;
+
+        case warden::common::FileType::ARCHIVE:
+            if (max_prob > 0.90f || density > 0.9f) return warden::common::Verdict::MALWARE;
+            return warden::common::Verdict::SUSPICIOUS;
+
+        case warden::common::FileType::EXECUTABLE:
+        case warden::common::FileType::OTHER:
+            if (max_prob > 0.85f || suspicious > 3) return warden::common::Verdict::MALWARE;
+            return warden::common::Verdict::SUSPICIOUS;
+    }
+
+    return warden::common::Verdict::SAFE;
 }
 
 }  // namespace warden::services
