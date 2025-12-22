@@ -1,6 +1,7 @@
 #include <atomic>
 #include <csignal>
 #include <iostream>
+#include <memory>
 #include <thread>
 #include <vector>
 
@@ -41,20 +42,20 @@ int main(int argc, char** argv) {
     }
 
     try {
-        ConfigService config("configs/app_config.json", "configs/model_config_v2.json",
-                             "configs/properties.json");
+        auto config = ConfigService::load("configs/app_config.json", "configs/model_config_v2.json",
+                                          "configs/properties.json");
 
-        ScanService scanner(config);
-        FeatureService extractor(config);
-        ModelService model(config);
+        ScanService scanner(*config);
+        FeatureService extractor(*config);
+        ModelService model(*config);
         DetectorService detector(scanner, extractor, model);
 
         float threshold =
-            (options.custom_threshold > 0) ? options.custom_threshold : config.get_threshold();
+            (options.custom_threshold > 0) ? options.custom_threshold : config->model().threshold;
 
         if (options.mode_monitor) {
             CliObserver observer(cli);
-            MonitorService monitor(detector, config, observer);
+            MonitorService monitor(detector, *config, observer);
 
             std::signal(SIGINT, signal_handler);
 
@@ -81,9 +82,7 @@ int main(int argc, char** argv) {
 
         } else {
             if (options.file_path.empty()) {
-                std::cerr << "[!] Error: No file specified for scan. Use 'scan <file>' or 'monitor "
-                             "<path>'"
-                          << std::endl;
+                std::cerr << "[!] Error: No file specified for scan." << std::endl;
                 return 1;
             }
 

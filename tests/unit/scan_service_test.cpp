@@ -14,19 +14,19 @@ using namespace warden::common::constants;
 
 class ScanServiceTest : public ::testing::Test {
    protected:
-    std::unique_ptr<ConfigService> cs;
+    std::shared_ptr<ConfigService> cs;
 
     void SetUp() override {
         std::ofstream app("s_app.json");
         app << "{}";
         app.close();
         std::ofstream mod("s_mod.json");
-        mod << "{}";
+        mod << R"({"model_file":"m"})";
         mod.close();
         std::ofstream prp("s_prp.json");
         prp << R"({"scanner": {"min_chunks": 10, "max_chunks": 50}})";
         prp.close();
-        cs = std::make_unique<ConfigService>("s_app.json", "s_mod.json", "s_prp.json");
+        cs = ConfigService::load("s_app.json", "s_mod.json", "s_prp.json");
     }
 
     void create_dummy(const std::string& p, size_t s) {

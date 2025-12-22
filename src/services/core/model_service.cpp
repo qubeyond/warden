@@ -18,7 +18,7 @@ struct DMatrixGuard {
 };
 
 ModelService::ModelService(const ConfigService& config) : config_(config), booster_(nullptr) {
-    std::string model_path = config_.get_model_path();
+    std::string model_path = config_.model().path;
     BoosterHandle bh;
 
     check_xgboost_error(XGBoosterCreate(nullptr, 0, &bh), "Failed to create booster");
@@ -31,15 +31,12 @@ ModelService::ModelService(const ConfigService& config) : config_(config), boost
 }
 
 ModelService::~ModelService() {
-    if (booster_) {
-        XGBoosterFree(static_cast<BoosterHandle>(booster_));
-    }
+    if (booster_) XGBoosterFree(static_cast<BoosterHandle>(booster_));
 }
 
 float ModelService::predict(const std::vector<float>& features) {
     if (features.empty()) return 0.0f;
-
-    if (features.size() != config_.get_features()) {
+    if (features.size() != config_.model().n_features) {
         throw std::runtime_error("Model input mismatch");
     }
 
@@ -51,14 +48,12 @@ float ModelService::predict(const std::vector<float>& features) {
 
     bst_ulong out_len;
     const float* out_result;
-
     {
         std::lock_guard<std::mutex> lock(model_mutex_);
         check_xgboost_error(XGBoosterPredict(static_cast<BoosterHandle>(booster_), dmat.handle, 0,
                                              0, 0, &out_len, &out_result),
                             "Prediction failed");
     }
-
     return (out_len > 0) ? out_result[0] : 0.0f;
 }
 

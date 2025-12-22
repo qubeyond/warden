@@ -14,10 +14,10 @@ TEST(DetectorServiceUnitTest, LogicVerdictCalculation) {
     std::string m = "configs/model_config_v2.json";
     std::string p = "configs/properties.json";
 
-    ConfigService cs(a, m, p);
-    ScanService ss(cs);
-    FeatureService fs(cs);
-    ModelService ms(cs);
+    auto cs = ConfigService::load(a, m, p);
+    ScanService ss(*cs);
+    FeatureService fs(*cs);
+    ModelService ms(*cs);
     DetectorService ds(ss, fs, ms);
 
     EXPECT_NO_THROW(ds.process_file("detector_unit_test_dummy", 0.5f));

@@ -38,47 +38,38 @@ FeatureService::~FeatureService() = default;
 
 void FeatureService::init_magic() {
     auto cookie = magic_open(MAGIC_MIME_TYPE);
-    if (!cookie || magic_load(cookie, nullptr) != 0) {
+    if (!cookie || magic_load(cookie, nullptr) != 0)
         throw std::runtime_error("Failed to initialize libmagic");
-    }
     magic_cookie_.reset(cookie);
 }
 
 FeatureSet FeatureService::extract_features(const std::vector<uint8_t>& data) const {
-    const size_t expected_features = config_.get_features();
-    if (expected_features != 262) {
-        throw std::runtime_error("FeatureService logic mismatch: expected 262 features");
-    }
+    if (config_.model().n_features != 262)
+        throw std::runtime_error("FeatureService logic mismatch");
 
     FeatureSet fs;
     fs.histogram.assign(256, 0.0f);
     if (data.empty()) return fs;
 
     size_t n = data.size();
-    double sum = 0.0;
-    double M2 = 0.0;
-    double auto_dot_product = 0.0;
-    uint32_t zero_pairs_count = 0;
+    double M2 = 0.0, auto_dot_product = 0.0, sum = 0.0, mean_inc = 0.0;
+    uint32_t zp_count = 0;
     std::vector<uint64_t> counts(256, 0);
 
-    double mean_incremental = 0.0;
     for (size_t i = 0; i < n; ++i) {
         uint8_t val = data[i];
         counts[val]++;
-
-        double delta = val - mean_incremental;
-        mean_incremental += delta / (i + 1);
-        double delta2 = val - mean_incremental;
-        M2 += delta * delta2;
-
+        double delta = val - mean_inc;
+        mean_inc += delta / (i + 1);
+        M2 += delta * (val - mean_inc);
         if (i < n - 1) {
             auto_dot_product += static_cast<double>(val) * data[i + 1];
-            if (val == 0 && data[i + 1] == 0) zero_pairs_count++;
+            if (val == 0 && data[i + 1] == 0) zp_count++;
         }
         sum += val;
     }
 
-    fs.mean = static_cast<float>(mean_incremental);
+    fs.mean = static_cast<float>(mean_inc);
     double variance = (n > 1) ? M2 / n : 0.0;
     fs.std_dev = std::sqrt(static_cast<float>(variance));
 
@@ -99,31 +90,21 @@ FeatureSet FeatureService::extract_features(const std::vector<uint8_t>& data) co
         double cov = (auto_dot_product / (total_f - 1)) - (sum * sum / (total_f * (total_f - 1)));
         fs.autocorrelation = static_cast<float>(cov / variance);
     }
-
-    fs.zero_pairs = static_cast<float>(zero_pairs_count);
+    fs.zero_pairs = static_cast<float>(zp_count);
     return fs;
 }
 
 warden::common::FileType FeatureService::identify_file_type(const std::string& path) const {
     const char* mime = magic_file(magic_cookie_.get(), path.c_str());
     if (!mime) return warden::common::FileType::OTHER;
-
     std::string_view s_mime(mime);
-
-    if (s_mime.find("video/") == 0 || s_mime.find("image/") == 0 || s_mime == "application/pdf") {
+    if (s_mime.find("video/") == 0 || s_mime.find("image/") == 0 || s_mime == "application/pdf")
         return warden::common::FileType::MEDIA;
-    }
-
-    if (s_mime.find("archive") != std::string_view::npos || s_mime == "application/zip" ||
-        s_mime == "application/x-rar") {
+    if (s_mime.find("archive") != std::string_view::npos || s_mime == "application/zip")
         return warden::common::FileType::ARCHIVE;
-    }
-
     if (s_mime.find("executable") != std::string_view::npos ||
-        s_mime.find("sharedlib") != std::string_view::npos) {
+        s_mime.find("sharedlib") != std::string_view::npos)
         return warden::common::FileType::EXECUTABLE;
-    }
-
     return warden::common::FileType::OTHER;
 }
 

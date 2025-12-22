@@ -20,8 +20,8 @@ std::vector<std::vector<uint8_t>> ScanService::get_file_chunks(const std::string
     if (file_size == 0) return {};
 
     const size_t chunk_sz = warden::common::constants::CHUNK_SIZE;
-    const size_t min_c = config_.get_min_chunks();
-    const size_t max_c = config_.get_max_chunks();
+    const size_t min_c = config_.scanner().min_chunks;
+    const size_t max_c = config_.scanner().max_chunks;
 
     std::vector<size_t> offsets;
 
@@ -40,7 +40,6 @@ std::vector<std::vector<uint8_t>> ScanService::get_file_chunks(const std::string
         size_t last_offset = 0;
         for (size_t i = 0; i < desired; ++i) {
             size_t current_offset = static_cast<size_t>(std::round(i * step));
-
             if (i == 0 || current_offset >= last_offset + chunk_sz) {
                 offsets.push_back(current_offset);
                 last_offset = current_offset;
@@ -54,16 +53,13 @@ std::vector<std::vector<uint8_t>> ScanService::get_file_chunks(const std::string
     for (size_t offset : offsets) {
         file.seekg(offset, std::ios::beg);
         size_t to_read = std::min(chunk_sz, file_size - offset);
-
         auto& buffer = chunks.emplace_back(chunk_sz, 0);
         file.read(reinterpret_cast<char*>(buffer.data()), to_read);
-
         if (!file && !file.eof()) {
             chunks.pop_back();
             break;
         }
     }
-
     return chunks;
 }
 

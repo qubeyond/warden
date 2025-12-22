@@ -1,46 +1,53 @@
 #pragma once
+
+#include <memory>
 #include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
 
-#include "common/defs.hpp"
-
 namespace warden::services {
+
+struct AppConfig {
+    std::string db_host = "localhost";
+    uint16_t db_port = 8123;
+};
+
+struct ModelConfig {
+    std::string path;
+    float threshold = 0.5f;
+    size_t n_features = 262;
+};
+
+struct ScannerConfig {
+    size_t min_chunks = 10;
+    size_t max_chunks = 50;
+    std::vector<std::string> watch_dirs;
+};
 
 class ConfigService {
    public:
-    explicit ConfigService(const std::string &app_path, const std::string &model_path,
-                           const std::string &prop_path);
+    static std::shared_ptr<ConfigService> load(const std::string& app_path,
+                                               const std::string& model_path,
+                                               const std::string& prop_path);
 
-    float get_threshold() const {
-        return model_data_.at("threshold");
+    const AppConfig& app() const {
+        return app_;
     }
-    size_t get_features() const {
-        return model_data_.at("n_features");
+    const ModelConfig& model() const {
+        return model_;
     }
-    std::string get_model_path() const {
-        return model_data_.at("model_file");
-    }
-
-    std::string get_db_host() const {
-        return app_data_.at("database").value("host", "localhost");
-    }
-
-    size_t get_min_chunks() const {
-        return prop_data_.at("scanner").value("min_chunks", 10);
-    }
-    size_t get_max_chunks() const {
-        return prop_data_.at("scanner").value("max_chunks", 50);
-    }
-    std::vector<std::string> get_watch_dirs() const {
-        return prop_data_.at("scanner").value("watch_dirs", std::vector<std::string>{});
+    const ScannerConfig& scanner() const {
+        return scanner_;
     }
 
    private:
-    nlohmann::json model_data_;
-    nlohmann::json app_data_;
-    nlohmann::json prop_data_;
-    nlohmann::json load_file(const std::string &path);
+    ConfigService() = default;
+
+    AppConfig app_;
+    ModelConfig model_;
+    ScannerConfig scanner_;
+
+    static nlohmann::json parse_file(const std::string& path);
 };
 
 }  // namespace warden::services
