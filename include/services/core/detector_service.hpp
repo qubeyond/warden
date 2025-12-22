@@ -15,6 +15,7 @@ struct DetectionResult {
     size_t suspicious_chunks;
     size_t total_chunks;
     warden::common::FileType file_type;
+    uint64_t event_mask = 0;
 };
 
 class DetectorService {

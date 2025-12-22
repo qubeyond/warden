@@ -1,8 +1,7 @@
 #pragma once
-
 #include <atomic>
-#include <map>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "services/common/report_observer.hpp"
@@ -21,15 +20,16 @@ class MonitorService {
     void stop();
 
    private:
-    void process_events();
+    void run();
 
     DetectorService& detector_;
     ConfigService& config_;
     IReportObserver& observer_;
 
-    int inotify_fd_ = -1;
+    int fan_fd_ = -1;
+    int stop_fd_ = -1;
     std::atomic<bool> is_running_{false};
-    std::map<int, std::string> watch_descriptors_;
+    std::thread worker_thread_;
 };
 
 }  // namespace warden::services

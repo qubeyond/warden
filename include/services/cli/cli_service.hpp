@@ -9,8 +9,10 @@ namespace warden::services {
 
 struct CliOptions {
     std::string file_path;
+    std::string monitor_path;
     bool verbose = false;
     float custom_threshold = -1.0f;
+    bool mode_monitor = false;
 };
 
 class CliService : public IReportObserver {
