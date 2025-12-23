@@ -35,7 +35,7 @@ sudo ./build/warden_cli --gui monitor ~/my_folder
 Запустить в разных консолях
 
 ```bash
-./tests/scripts/gui_test.sh ~/warden_new_test
+./tests/scripts/gui_test.sh ~/warden_monitor_test
 ```
 
 ```bash
