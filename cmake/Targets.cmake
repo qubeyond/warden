@@ -2,6 +2,7 @@ file(GLOB_RECURSE CORE_SOURCES CONFIGURE_DEPENDS
     "${PROJECT_SOURCE_DIR}/src/services/core/*.cpp"
     "${PROJECT_SOURCE_DIR}/src/services/detector_service.cpp"
     "${PROJECT_SOURCE_DIR}/src/services/system/config.cpp"
+    "${PROJECT_SOURCE_DIR}/src/common/*.cpp"
 )
 
 add_library(warden_core SHARED ${CORE_SOURCES})
@@ -14,6 +15,7 @@ target_link_libraries(warden_core PUBLIC
     OpenSSL::Crypto 
     nlohmann_json::nlohmann_json 
     XGBoost::xgboost 
+    spdlog::spdlog
     Boost::boost 
     magic
 )

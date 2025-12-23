@@ -18,6 +18,13 @@ struct ModelConfig {
     size_t n_features = 262;
 };
 
+struct LoggerConfig {
+    std::string log_dir = "/var/log/warden";
+    std::string log_level = "info";
+    size_t max_file_size_mb = 10;
+    size_t max_files = 3;
+};
+
 struct ScannerConfig {
     size_t min_chunks = 10;
     size_t max_chunks = 50;
@@ -39,6 +46,9 @@ class ConfigManager {
     const ScannerConfig& scanner() const {
         return scanner_;
     }
+    const LoggerConfig& logger() const {
+        return logger_;
+    }
 
    private:
     ConfigManager() = default;
@@ -46,6 +56,7 @@ class ConfigManager {
     AppConfig app_;
     ModelConfig model_;
     ScannerConfig scanner_;
+    LoggerConfig logger_;
 
     static nlohmann::json parse_file(const std::string& path);
 };

@@ -5,7 +5,12 @@
         "watch_dirs": [
             "/home/vyach/course/data/samples",
             "/tmp/uploads"
-        ],
-        "scan_step_multiplier": 20
+        ]
+    },
+    "logger": {
+        "log_dir": "/var/log/warden",
+        "log_level": "info",
+        "max_file_size_mb": 10,
+        "max_files": 5
     }
 }

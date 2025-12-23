@@ -27,3 +27,7 @@ create_test(detector_intg_test
 create_test(monitor_intg_test
     "integration/monitor_service_test.cpp"
 )
+
+create_test(logger_unit_test
+    "unit/logger_test.cpp"
+)
