@@ -50,6 +50,10 @@ class ConfigManager {
         return logger_;
     }
 
+    ModelConfig& mutable_model() { return model_; }
+    ScannerConfig& mutable_scanner() { return scanner_; }
+    LoggerConfig& mutable_logger() { return logger_; }
+
    private:
     ConfigManager() = default;
 

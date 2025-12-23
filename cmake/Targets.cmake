@@ -49,6 +49,9 @@ target_link_libraries(warden_cli PRIVATE
     warden_core 
     warden_system 
     CLI11::CLI11
+    ftxui::screen 
+    ftxui::dom 
+    ftxui::component
 )
 
 function(copy_project_resources)

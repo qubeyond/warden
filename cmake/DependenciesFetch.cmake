@@ -6,3 +6,9 @@ FetchContent_Declare(
     GIT_TAG        v2.4.2
 )
 FetchContent_MakeAvailable(cli11)
+
+FetchContent_Declare(ftxui
+  GIT_REPOSITORY https://github.com/ArthurSonzogni/FTXUI
+  GIT_TAG v5.0.0
+)
+FetchContent_MakeAvailable(ftxui)
